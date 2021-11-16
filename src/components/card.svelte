@@ -35,10 +35,15 @@
         <div
           class="card-back absolute transition inset-0 shadow-md rounded-sm"
           transition:flip
-        />{:else}
+        />{:else if card.type === 'image'}
         <div
           class="card-front absolute transition inset-0 shadow-md rounded-sm overflow-hidden bg-white flex justify-center items-center bg-cover border-solid border-5 border-white"
-          style="background-image:url({card.image})"
+          style="background-image:url({card.value})"
+          transition:flip
+        />
+      {:else}
+        <div
+          class="card-front text-center break-all absolute transition inset-0 shadow-md rounded-sm overflow-hidden bg-white flex justify-center items-center bg-cover border-solid border-5 border-white"
           transition:flip
         >
           {card.value}
@@ -64,5 +69,10 @@
 
   .card-container:not(.touchy).closed:hover {
     @apply shadow-md scale-110 translate-y-1 !rotate-0;
+  }
+  .card-front {
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
   }
 </style>

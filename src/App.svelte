@@ -1,32 +1,91 @@
 <script lang="ts">
-
   import Card from './components/card.svelte'
-
+  import { randomArrayItem, shuffle } from './logic/utils'
+  import * as faker from 'faker'
+  let nameProbability = 0.2
+  let cardCount = 10
   let data = Array.from({ length: 6 * 6 }, (_, i) => ({
     id: i,
     value: i,
     flipped: false,
-    image: 'https://placekitten.com/200/200',
-    type: 'image',
+    profilePicture: faker.image.avatar(),
+    name: faker.name.findName(),
+    characteristics: [
+      { type: 'hobby', value: 'backen' },
+      { type: 'hobby', value: 'programmieren' },
+      { type: 'location', value: faker.address.cityName() },
+    ],
+  })).map((d) => ({
+    ...d,
+    characteristics: [...d.characteristics, { type: 'name', value: d.name }],
   }))
 
-  function flipCard(card) {
+  let pairs = data.map((d) => {
+    const left = {
+      type: 'text',
+      value: null,
+    }
+    const right = {
+      type: 'text',
+      value: null,
+    }
+
+    const probablityLength = Math.max(
+      1,
+      Math.ceil(
+        (nameProbability / (1 - nameProbability)) * d.characteristics.length,
+      ),
+    )
+    const nameArray = Array.from({ length: probablityLength }, (_) => ({
+      type: 'name',
+      value: d.name,
+    }))
+    let characteristics = [...d.characteristics, ...nameArray]
+    if (d.profilePicture?.length) {
+      left.type = 'image'
+      left.value = d.profilePicture
+    } else {
+      left.type = 'text'
+      left.value = d.name
+      characteristics = d.characteristics
+    }
+
+    right.value = randomArrayItem(characteristics).value
+
+    return { left, right }
+  })
+
+  const cards = shuffle(
+    pairs
+      .slice(0, cardCount)
+      .map(({ left, right }, i) => {
+        return [left, right].map(({ type, value }) => ({
+          id: i,
+          type,
+          value,
+          flipped: false,
+        }))
+      })
+      .flat(),
+  )
+
+  function flipCard(card, index) {
     card.flipped = !card.flipped
-    data[card.id] = card
+    cards[index] = card
   }
 </script>
 
 <main class="container my-2 mx-auto flex flex-col space-y-10 h-full">
   <div class="flex justify-end">
     <button
-      class="font-thin text-sm bg-gray-700 text-white hover:bg-gray-600"
+      class="font-thin text-sm rounded-md bg-dark-200 text-white hover:bg-dark-300"
       >Meine Daten</button
     >
   </div>
   <div class="flex-grow flex justify-center items-center text-gray-800">
     <div class="max-w-xl h-full p-5 flex flex-wrap justify-between">
-      {#each data as card, id}
-        <Card {card} on:flipped={() => flipCard(card)} />
+      {#each cards as card, i}
+        <Card {card} on:flipped={() => flipCard(card, i)} />
       {/each}
     </div>
   </div>
