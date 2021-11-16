@@ -1,0 +1,23 @@
+{
+  "name": "x-memory",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sveltejs/vite-plugin-svelte": "^1.0.0-next.30",
+    "gh-pages": "^3.2.3",
+    "svelte": "^3.44.1",
+    "svelte-preprocess": "^4.9.8",
+    "svelte-windicss-preprocess": "4.1.0",
+    "typescript": "^4.4.4",
+    "vite": "^2.6.14",
+    "windicss": "^3.2.1"
+  }
+}
