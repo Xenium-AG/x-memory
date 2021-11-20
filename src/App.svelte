@@ -1,106 +1,107 @@
 <script lang="ts">
   import Card from './components/card.svelte'
-  import { randomArrayItem, shuffle } from './logic/utils'
-  import * as faker from 'faker'
-  let nameProbability = 0.2
-  let cardCount = 10
-  let data = Array.from({ length: 6 * 6 }, (_, i) => ({
-    id: i,
-    value: i,
-    flipped: false,
-    profilePicture: faker.image.avatar(),
-    name: faker.name.findName(),
-    characteristics: [
-      { type: 'hobby', value: 'backen' },
-      { type: 'hobby', value: 'programmieren' },
-      { type: 'location', value: faker.address.cityName() },
-    ],
-  })).map((d) => ({
-    ...d,
-    characteristics: [...d.characteristics, { type: 'name', value: d.name }],
-  }))
+  import { createCardDeck } from './logic/cardDeck'
+  import { getData } from './logic/data'
+  import { quartInOut } from 'svelte/easing'
+  import { throttle } from './logic/utils'
 
-  let pairs = data.map((d) => {
-    const left = {
-      type: 'text',
-      value: null,
+  let clicked = 0
+  let pairs = []
+  let cards = []
+  function shuffling(node, { delay = 0 }) {
+    return {
+      delay: Math.random() * 150,
+      duration: 200 + Math.random() * 50,
+      css: (t, u) => `
+        transform:  translate(${
+          -(1 - t) *
+          (-node.parentElement.offsetWidth / 2 + node.offsetLeft)
+        }px,${-(1 - t) * (node.offsetTop + 200)}px) rotateZ(${(1 - t) * 90}deg);
+      `,
+      easing: quartInOut,
     }
-    const right = {
-      type: 'text',
-      value: null,
-    }
+  }
 
-    const probablityLength = Math.max(
-      1,
-      Math.ceil(
-        (nameProbability / (1 - nameProbability)) * d.characteristics.length,
-      ),
-    )
-    const nameArray = Array.from({ length: probablityLength }, (_) => ({
-      type: 'name',
-      value: d.name,
-    }))
-    let characteristics = [...d.characteristics, ...nameArray]
-    if (d.profilePicture?.length) {
-      left.type = 'image'
-      left.value = d.profilePicture
-    } else {
-      left.type = 'text'
-      left.value = d.name
-      characteristics = d.characteristics
-    }
+  let pairCount = 10
+  let data = getData()
 
-    right.value = randomArrayItem(characteristics).value
-
-    return { left, right }
-  })
-
-  const cards = shuffle(
-    pairs
-      .slice(0, cardCount)
-      .map(({ left, right }, i) => {
-        return [left, right].map(({ type, value }) => ({
-          id: i,
-          type,
-          value,
-          flipped: false,
-        }))
-      })
-      .flat(),
-  )
+  let images = data.map((d) => d.profilePicture)
+  let isShuffling = false
 
   function flipCard(card, index) {
-    card.flipped = !card.flipped
+    clicked++
+    card.flipped = true
     cards[index] = card
   }
+  async function closeCards() {
+    return new Promise<boolean>((resolve) => {
+      setTimeout(() => resolve(true), 500)
+
+      cards.forEach((card, index) => {
+        setTimeout(() => {
+          card.flipped = false
+          cards[index] = card
+        }, Math.random() * 300)
+      })
+    })
+  }
+
+  async function shuffle(e) {
+    if (isShuffling) {
+      e.preventDefault()
+      return false
+    }
+
+    isShuffling = true
+    await closeCards()
+    cards = []
+    setTimeout(() => {
+      ;({ pairs, cards } = createCardDeck(data, pairCount))
+      isShuffling = false
+    }, 800)
+  }
+  const shuffleThrottled = throttle(shuffle, 800)
+  shuffleThrottled()
 </script>
 
-<main class="container my-2 mx-auto flex flex-col space-y-10 h-full">
-  <div class="flex justify-end">
-    <button
-      class="font-thin text-sm rounded-md bg-dark-200 text-white hover:bg-dark-300"
-      >Meine Daten</button
+<main class="container my-2 mx-auto flex flex-col">
+  <div class="absolute left-0 right-0 top-0 bg-dark-200">
+    <div
+      class="max-w-xl mx-auto flex justify-between space-x-5 children:( font-thin text-sm text-cool-gray-600 hover:text-cool-gray-300)"
     >
+      <button on:click={shuffleThrottled} class="py-3">Einstellungen</button>
+      <button on:click={shuffleThrottled} class="py-3">Neu{clicked}</button>
+      <button on:click={shuffleThrottled} class="py-3">Meine Daten</button>
+    </div>
   </div>
-  <div class="flex-grow flex justify-center items-center text-gray-800">
-    <div class="max-w-xl h-full p-5 flex flex-wrap justify-between">
-      {#each cards as card, i}
-        <Card {card} on:flipped={() => flipCard(card, i)} />
+  <div
+    class="relative flex flex-grow justify-center items-center mt-25 text-gray-800"
+  >
+    <div class="relative max-w-xl h-full p-5 flex flex-wrap justify-between">
+      {#each cards as card, i (i)}
+        <span class="" transition:shuffling={{}}>
+          <Card {card} on:flipped={() => flipCard(card, i)} /></span
+        >
       {/each}
     </div>
   </div>
 </main>
+<div class="hidden">
+  {#each images as src}
+    <img {src} alt="" />
+  {/each}
+</div>
 
 <style>
   :root {
     @apply bg-dark-50 text-light-700 select-none;
     height: 100%;
     margin: 0;
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);*/
   }
   :global(*) {
+    
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
       Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
@@ -124,4 +125,5 @@
   :global(.btn) {
     @apply bg-blue-500 hover:bg-blue-700 text-white rounded-md;
   }
+
 </style>
