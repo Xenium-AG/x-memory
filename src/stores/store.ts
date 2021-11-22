@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store'
 
 export const openMenu = writable(0)
-export const numOfPairs = writable(9)
+export const numOfPairs = writable(5)
 export const onlyNames = writable(false)
 export const randomCardBacks = writable(false)
 

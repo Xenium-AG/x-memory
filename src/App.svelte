@@ -30,7 +30,17 @@
   let images = data.map((d) => d.profilePicture)
 
   function flipCard(card, index) {
-    if (!card.flipped && pickedCards.length < 2) {
+    const unreveal = () => {
+      pickedCards.forEach((card) => {
+        card.flipped = false
+        card.status = CARD_STATUS.None
+      })
+      cards = cards
+      pickedCards = []
+    }
+    
+    if (!card.flipped) {
+      if (pickedCards.length === 2) unreveal()
       card.flipped = true
       cards[index] = card
       pickedCards = [...pickedCards, card]
@@ -58,13 +68,8 @@
           cards = cards
         }
       }
-    } else {
-      pickedCards.forEach((card) => {
-        card.flipped = false
-        card.status = CARD_STATUS.None
-      })
-      cards = cards
-      pickedCards = []
+    } else if (pickedCards.length === 2) {
+      unreveal()
     }
   }
   async function closeCards() {
