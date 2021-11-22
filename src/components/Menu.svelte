@@ -38,6 +38,6 @@
 
 <style>
   button {
-    @apply py-3 text-sm text-cool-gray-400 active:bg-dark-400 pb-1 align-middle flex;
+    @apply appearance-none focus:!outline-none py-3 text-sm text-cool-gray-400 active:bg-dark-400 pb-1 align-middle flex;
   }
 </style>

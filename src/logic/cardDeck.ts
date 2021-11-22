@@ -1,5 +1,7 @@
 import { randomArrayItem, shuffle } from './utils'
 import { CARD_BACK_COLORS } from './constants'
+import { validate_each_argument } from 'svelte/internal'
+
 export function createCardDeck(data, cardCount, options) {
   const nameProbability = 0.1
   let pairs = data.map((d) => {
@@ -40,6 +42,11 @@ export function createCardDeck(data, cardCount, options) {
     }
 
     right.value = randomArrayItem(characteristics).value
+
+    if(options.isCatMode){
+      right.type = 'image'
+      right.value = d.profilePicture
+    }
 
     return { left, right }
   })

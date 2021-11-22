@@ -19,7 +19,7 @@
 <style>
   .range {
     -webkit-appearance: none;
-    @apply bg-dark-50 rounded-full w-full;
+    @apply bg-dark-50 rounded-full w-full !h-2;
   }
 
   .range::-webkit-slider-runnable-track {
@@ -31,12 +31,12 @@
   .range::-webkit-slider-thumb {
     -webkit-appearance: none;
     @apply w-10 h-10 rounded-full bg-dark-200 border border-2 border-solid border-orange-400 transition-all ease-in-out;
-    transform: translateY(-40%);
+    @apply translate-y-0;
     cursor: pointer;
   }
   .range::-moz-range-thumb {
     @apply w-10 h-10 rounded-full bg-orange-400 transition-all ease-in-out;
-    transform: translateY(-40%);
+    @apply translate-y-0;
     cursor: pointer;
   }
 </style>
