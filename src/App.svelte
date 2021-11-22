@@ -25,7 +25,7 @@
   let correctCards = 0
   let pickedCards = []
 
-  let data = getData()
+  let data = getData(50)
 
   let images = data.map((d) => d.profilePicture)
 
