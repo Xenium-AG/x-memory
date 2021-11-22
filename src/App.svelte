@@ -1,41 +1,76 @@
 <script lang="ts">
-  import Card from './components/card.svelte'
-  import { createCardDeck } from './logic/cardDeck'
+  import Card from './components/Card.svelte'
+  import Menu from './components/Menu.svelte'
+  import Modal from './components/Modal.svelte'
+  import { checkCards, createCardDeck } from './logic/cardDeck'
   import { getData } from './logic/data'
-  import { quartInOut } from 'svelte/easing'
+  import { shuffling } from './logic/animations'
   import { throttle } from './logic/utils'
-
-  let clicked = 0
+  import {
+    openMenu,
+    numOfPairs,
+    onlyNames,
+    randomCardBacks,
+    personOptIn,
+    personPictureUrl,
+    personHobbies,
+  } from './stores/store'
+  import CheckBox from './components/CheckBox.svelte'
+  import Range from './components/Range.svelte'
+  import Input from './components/Input.svelte'
+  import { scale, slide } from 'svelte/transition'
+  import { CARD_STATUS } from './logic/constants'
   let pairs = []
   let cards = []
-  function shuffling(node, { delay = 0 }) {
-    return {
-      delay: Math.random() * 150,
-      duration: 200 + Math.random() * 50,
-      css: (t, u) => `
-        transform:  translate(${
-          -(1 - t) *
-          (-node.parentElement.offsetWidth / 2 + node.offsetLeft)
-        }px,${-(1 - t) * (node.offsetTop + 200)}px) rotateZ(${(1 - t) * 90}deg);
-      `,
-      easing: quartInOut,
-    }
-  }
+  let correctCards = 0
+  let pickedCards = []
 
-  let pairCount = 10
   let data = getData()
 
   let images = data.map((d) => d.profilePicture)
-  let isShuffling = false
 
   function flipCard(card, index) {
-    clicked++
-    card.flipped = true
-    cards[index] = card
+    if (!card.flipped && pickedCards.length < 2) {
+      card.flipped = true
+      cards[index] = card
+      pickedCards = [...pickedCards, card]
+
+      if (pickedCards.length === 2) {
+        const isCorrectPair = checkCards(pickedCards, pairs)
+        if (isCorrectPair) {
+          pickedCards.forEach((card) => {
+            card.status = CARD_STATUS.Correct
+          })
+          cards = cards
+          const pickedCopy = [...pickedCards]
+          pickedCards = []
+          setTimeout(() => {
+            pickedCopy.forEach((card) => {
+              card.status = CARD_STATUS.None
+            })
+            cards = cards
+            correctCards += 2
+          }, 500)
+        } else {
+          pickedCards.forEach((card) => {
+            card.status = CARD_STATUS.Incorrect
+          })
+          cards = cards
+        }
+      }
+    } else {
+      pickedCards.forEach((card) => {
+        card.flipped = false
+        card.status = CARD_STATUS.None
+      })
+      cards = cards
+      pickedCards = []
+    }
   }
   async function closeCards() {
+    pickedCards = []
     return new Promise<boolean>((resolve) => {
-      setTimeout(() => resolve(true), 500)
+      setTimeout(() => resolve(true), 300)
 
       cards.forEach((card, index) => {
         setTimeout(() => {
@@ -47,17 +82,14 @@
   }
 
   async function shuffle(e) {
-    if (isShuffling) {
-      e.preventDefault()
-      return false
-    }
-
-    isShuffling = true
+    correctCards = 0
     await closeCards()
     cards = []
     setTimeout(() => {
-      ;({ pairs, cards } = createCardDeck(data, pairCount))
-      isShuffling = false
+      ;({ pairs, cards } = createCardDeck(data, $numOfPairs, {
+        isCardBackRandom: $randomCardBacks,
+        onlyNames: $onlyNames,
+      }))
     }, 800)
   }
   const shuffleThrottled = throttle(shuffle, 800)
@@ -65,17 +97,13 @@
 </script>
 
 <main class="container my-2 mx-auto flex flex-col">
-  <div class="absolute left-0 right-0 top-0 bg-dark-200">
-    <div
-      class="max-w-xl mx-auto flex justify-between space-x-5 children:( font-thin text-sm text-cool-gray-600 hover:text-cool-gray-300)"
-    >
-      <button on:click={shuffleThrottled} class="py-3">Einstellungen</button>
-      <button on:click={shuffleThrottled} class="py-3">Neu{clicked}</button>
-      <button on:click={shuffleThrottled} class="py-3">Meine Daten</button>
-    </div>
-  </div>
+  <Menu
+    on:shuffle={shuffleThrottled}
+    on:menu-settings={() => ($openMenu = 1)}
+    on:menu-data={() => ($openMenu = 2)}
+  />
   <div
-    class="relative flex flex-grow justify-center items-center mt-25 text-gray-800"
+    class="relative flex flex-grow justify-center items-center mt-25 mb-5 text-gray-800"
   >
     <div class="relative max-w-xl h-full p-5 flex flex-wrap justify-between">
       {#each cards as card, i (i)}
@@ -91,20 +119,84 @@
     <img {src} alt="" />
   {/each}
 </div>
+<Modal open={$openMenu == 1} on:close={() => ($openMenu = 0)} title="Optionen">
+  <div class="flex flex-col space-y-8">
+    <span><CheckBox bind:checked={$onlyNames} label="Nur Namen" /></span>
+    <span
+      ><CheckBox
+        bind:checked={$randomCardBacks}
+        label="Zufällige Kartenrücken"
+      /></span
+    >
+    <span
+      ><Range
+        min={3}
+        max={50}
+        bind:value={$numOfPairs}
+        label={`${$numOfPairs} Kartenpaare`}
+      /></span
+    >
+  </div></Modal
+>
 
-<style>
+<Modal
+  open={$openMenu == 2}
+  on:close={() => ($openMenu = 0)}
+  title="Meine Daten"
+>
+  <div class="flex flex-col space-y-6">
+    <span><CheckBox bind:checked={$personOptIn} label="Mitmachen" /></span>
+    {#if $personOptIn}
+      <span transition:slide class="space-y-6">
+        <div class="self-center flex justify-around w-full" transition:scale>
+          <Card
+            card={{
+              type: 'image',
+              flipped: true,
+              value: $personPictureUrl,
+            }}
+          />
+          <Card
+            card={{
+              type: 'text',
+              flipped: true,
+              value: 'Hans Musterperson',
+            }}
+          />
+        </div>
+        <div>
+          <Input label={'Bild URL'} bind:value={$personPictureUrl} />
+        </div>
+        <div>
+          <Input label={'Hobbies'} textarea bind:value={$personHobbies} />
+        </div>
+      </span>
+    {/if}
+  </div></Modal
+>
+<Modal
+  open={$openMenu == 0 && correctCards > 1 && correctCards == cards.length}
+  on:close={() => {
+    ;(correctCards = 0), shuffleThrottled()
+  }}
+  title="Glückwunsch!"
+>
+  <div class="text-center">Du hast alle Karten afgedeckt!</div></Modal
+>
+
+<style windi:preflights:global windi:safelist:global>
   :root {
     @apply bg-dark-50 text-light-700 select-none;
     height: 100%;
     margin: 0;
-    
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);*/
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
   }
   :global(*) {
-    
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
       Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
+
   :global(body) {
     top: 0;
     left: 0;
@@ -125,5 +217,4 @@
   :global(.btn) {
     @apply bg-blue-500 hover:bg-blue-700 text-white rounded-md;
   }
-
 </style>

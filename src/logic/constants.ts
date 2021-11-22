@@ -16,3 +16,10 @@ export const CARD_BACK_COLORS = [
   'orange',
   'orange',
 ]
+
+
+export const CARD_STATUS = {
+  Correct: 'correct',
+  Incorrect: 'incorrect',
+  None: 'none',
+}

@@ -1,15 +1,16 @@
-import { cubicOut, expoInOut } from 'svelte/easing'
-export function whizz(node, { from, to }, params) {
-  const dx = from.left - to.left
-  const dy = from.top - to.top
-
-  const d = Math.sqrt(dx * dx + dy * dy)
-
+import { quartInOut } from 'svelte/easing'
+export function shuffling(node, { delay = 0 }) {
   return {
-    delay: 0,
-    duration: Math.sqrt(d) * 50,
-    easing: cubicOut,
-    css: (t, u) =>
-      `transform: translate(${u * dx}px, ${u * dy}px) rotate(${180}deg);`,
+    delay: Math.random() * 150,
+    duration: 200 + Math.random() * 50,
+    css: (t, u) => `
+      transform:  translate(${
+        -(1 - t) * (-node.parentElement.offsetWidth / 2 + node.offsetLeft + node.offsetWidth / 2)
+      }px,${
+      -(1 - t) *
+      (node.offsetTop + 2*node.offsetHeight + node.parentElement.offsetTop)
+    }px) rotateZ(${(1 - t) * 90}deg);
+    `,
+    easing: quartInOut,
   }
 }

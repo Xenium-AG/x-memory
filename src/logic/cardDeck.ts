@@ -1,15 +1,16 @@
 import { randomArrayItem, shuffle } from './utils'
 import { CARD_BACK_COLORS } from './constants'
-export function createCardDeck(data, cardCount) {
-
-  const nameProbability = 0.2
+export function createCardDeck(data, cardCount, options) {
+  const nameProbability = 0.1
   let pairs = data.map((d) => {
     const left = {
+      isLeft: true,
       type: 'text',
       origin: d,
       value: null,
     }
     const right = {
+      isLeft: false,
       type: 'text',
       origin: d,
       value: null,
@@ -25,7 +26,10 @@ export function createCardDeck(data, cardCount) {
       type: 'name',
       value: d.name,
     }))
-    let characteristics = [...d.characteristics, ...nameArray]
+
+    let characteristics = options.onlyNames
+      ? nameArray
+      : [...d.characteristics, ...nameArray]
     if (d.profilePicture?.length) {
       left.type = 'image'
       left.value = d.profilePicture
@@ -44,17 +48,31 @@ export function createCardDeck(data, cardCount) {
     pairs
       .slice(0, cardCount)
       .map(({ left, right }, i) => {
-        return [left, right].map(({ type, value }) => ({
+        return [left, right].map(({ isLeft, type, value }) => ({
           id: i,
           type,
           value,
           flipped: false,
-          backColor: randomArrayItem(CARD_BACK_COLORS),
+          status: 'none',
+          backColor: options.isCardBackRandom
+            ? randomArrayItem(CARD_BACK_COLORS)
+            : isLeft
+            ? 'orange'
+            : 'petrol',
         }))
       })
       .flat(),
   )
 
-  return {pairs, cards}
-  
+  return { pairs, cards }
+}
+
+export function checkCards(pickedCards, pairs) {
+  const [pickedLeft, pickedRight] = pickedCards
+  return pairs.some(({left, right}, i) => {
+    return (
+      (pickedLeft.value === left.value && pickedRight.value === right.value) ||
+      (pickedRight.value === left.value && pickedLeft.value === right.value)
+    )
+  })
 }

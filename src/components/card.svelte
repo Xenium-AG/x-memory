@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { COLORS } from '../logic/constants'
+  import { CARD_STATUS, COLORS } from '../logic/constants'
   import { createEventDispatcher } from 'svelte'
   import { hasTouch } from '../logic/utils'
 
@@ -36,15 +36,12 @@
   on:click={() => {
     dispatch('flipped')
   }}
-  on:dblclick={() => {
-    dispatch('flipped')
-  }}
 >
   <div
-    class="absolute cursor-pointer transition inset-0 hover:(z-10) preserve-3d perspect-origin-center perspect-1000px"
+    class="absolute cursor-pointer transition inset-0 hover:(z-2) preserve-3d perspect-origin-center perspect-1000px"
   >
     <div
-      class="absolute inset-0.1 transform rotate transform transition card-container scale-100"
+      class="absolute inset-1 transform rotate transform transition card-container scale-100"
       class:closed={!card || !card.flipped}
       class:touchy={hasTouch()}
       style={`--tw-rotate:${Math.random() * 6 - 3}deg`}
@@ -59,10 +56,17 @@
           <div
             class="card-front"
             style="background-image:url({card.value})"
+            class:incorrect={card.status === CARD_STATUS.Incorrect}
+            class:correct={card.status === CARD_STATUS.Correct}
             transition:flip|local
           />
         {:else}
-          <div class="card-front text-light-blue-800" transition:flip|local>
+          <div
+            class="card-front text-light-blue-800"
+            class:incorrect={card.status === CARD_STATUS.Incorrect}
+            class:correct={card.status === CARD_STATUS.Correct}
+            transition:flip|local
+          >
             {card.value}
           </div>
         {/if}
@@ -76,16 +80,8 @@
     border: 4px solid #fff;
     background-color: #fff;
     fill: #fff;
-    background-size: 34px;
+    background-size: 33px;
     background-repeat: repeat;
-    /*background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' stroke='%2313afc5' stroke-width='51' viewBox='0 0 100 100'%3E%3Cpath d='M0 25h50 m0 50h50'/%3E%3C/svg%3E");
-    
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' stroke='%2313afc5' stroke-width='50' viewBox='0 0 100 100'%3E%3Cpath d='M0 0l100 100M50 -50l100 100M50 150l-100 -100'/%3E%3C/svg%3E");
-  */
-  }
-
-  .card-container:not(.touchy):hover .card-back {
-    /*border-color: #13afc5 !important;*/
   }
 
   .card-container:not(.touchy).closed:hover {
@@ -94,5 +90,10 @@
   .card-front {
     @apply hyphens-auto text-center absolute transition inset-0 shadow-md rounded-sm overflow-hidden bg-white flex justify-center items-center bg-cover border-solid border-5 border-white;
   }
-  
+  .incorrect {
+    @apply border-red-400;
+  }
+  .correct {
+    @apply border-green-400;
+  }
 </style>
