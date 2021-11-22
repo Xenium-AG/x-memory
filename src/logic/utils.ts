@@ -35,3 +35,6 @@ export function throttle (callback, limit) {
       }
   }
 }
+export function split(str: string) {
+  return str.split(',').map((s) => s.trim())
+}

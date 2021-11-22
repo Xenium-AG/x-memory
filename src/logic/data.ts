@@ -1,7 +1,5 @@
-import { randomArrayItem } from './utils'
-function split(str: string) {
-  return str.split(',').map((s) => s.trim())
-}
+import { randomArrayItem, split } from './utils'
+
 const cities = split('Berlin,München,Hamburg')
 const names1 = split('Anna,Max,Peter,Michael,Hans,Frank,Tina,Lea,Hannah,Rudolf')
 const names2 = split('Wick,Johnson,Cooper,Gandalf,Mask,Ford')
