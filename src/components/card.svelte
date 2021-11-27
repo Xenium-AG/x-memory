@@ -9,9 +9,10 @@
     COLORS.map(({ name, color }) => [
       name,
       `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" stroke="%23${color.replace(
-        '#',
-        '',
-      )}" stroke-width="50" viewBox="0 0 100 100"%3E%3Cpath d="M0 0l100 100M50 -50l100 100M50 150l-100 -100"/%3E%3C/svg%3E`,
+        "#",
+        "",
+      )}" stroke-width="22" viewBox="0 0 100 100"%3E%3Cg transform="rotate(45)"%3E%3Cpath d="M0 0h150M0 30h150M0 60h150M0 -30h150M0 -60h150"/%3E%3C/g%3E%3C/svg%3E`
+      
     ]),
   )
 
@@ -80,8 +81,8 @@
     border: 4px solid #fff;
     background-color: #fff;
     fill: #fff;
-    background-size: 33px;
-    background-repeat: repeat;
+    background-size: 100px;
+    background-repeat: no-repeat;
   }
 
   .card-container:not(.touchy).closed:hover {

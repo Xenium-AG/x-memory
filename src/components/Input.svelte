@@ -14,7 +14,7 @@
   {#if textarea}
     <textarea id={eltId} bind:value class="input" />
   {:else}
-    <input type="text" id={eltId} spellcheck="false" bind:value class="input" />
+    <input type="text" id={eltId} spellcheck="false" autocomplete="new-password" bind:value class="input" />
   {/if}
 </label>
 

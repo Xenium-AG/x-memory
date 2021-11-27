@@ -1,6 +1,6 @@
 const msalConfig = {
   auth: {
-    clientId: '3704954b-71b4-4289-b03d-3ec278ed8dd9',
+    clientId: '8cb79a95-16ba-4944-ba1f-3eb6aba590af',
     authority: 'https://login.microsoftonline.com/xenium.de/',
     redirectUri: import.meta.env.DEV
       ? 'http://localhost:3000/x-memory/'
@@ -13,11 +13,11 @@ const msalConfig = {
 }
 
 const loginRequest = {
-  scopes: ['openid', 'profile' /*'User.Read'*/],
+  scopes: ['openid', 'profile','User.Read'],
 }
 
 const tokenRequest = {
-  scopes: ['Files.ReadWrite'],
+  scopes: ['Files.ReadWrite.All'],
 }
 
 export { msalConfig, loginRequest, tokenRequest }

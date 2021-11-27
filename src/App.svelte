@@ -3,31 +3,33 @@
   import Menu from './components/Menu.svelte'
   import Modal from './components/Modal.svelte'
   import { checkCards, createCardDeck } from './logic/cardDeck'
-  import { getData } from './logic/data'
+  import { getData, getTestData } from './logic/data'
   import { shuffling } from './logic/animations'
   import { throttle } from './logic/utils'
   import {
     openMenu,
-    numOfPairs,
-    onlyNames,
-    randomCardBacks,
-    personOptIn,
-    personPictureUrl,
-    personHobbies,
+    settings,
+    profile,
+    Profile,
   } from './stores/store'
   import CheckBox from './components/CheckBox.svelte'
   import Range from './components/Range.svelte'
   import Input from './components/Input.svelte'
   import { scale, slide } from 'svelte/transition'
   import { CARD_STATUS } from './logic/constants'
+
+  import { getAccount, signOut } from './auth/auth'
+
+  import { onMount } from 'svelte'
+  import { getTableRows, getMyRow, updateMyRow } from './logic/excel'
   let pairs = []
   let cards = []
   let correctCards = 0
   let pickedCards = []
 
-  let data = getData(50)
+  let data = []
 
-  let images = data.map((d) => d.profilePicture)
+  let images = []
 
   function flipCard(card, index) {
     const unreveal = () => {
@@ -38,7 +40,7 @@
       cards = cards
       pickedCards = []
     }
-    
+
     if (!card.flipped) {
       if (pickedCards.length === 2) unreveal()
       card.flipped = true
@@ -91,14 +93,37 @@
     await closeCards()
     cards = []
     setTimeout(() => {
-      ;({ pairs, cards } = createCardDeck(data, $numOfPairs, {
-        isCardBackRandom: $randomCardBacks,
-        onlyNames: $onlyNames,
+      ;({ pairs, cards } = createCardDeck(data, $settings.numOfPairs, {
+        isCardBackRandom: $settings.randomCardBacks,
+        onlyNames: $settings.onlyNames,
       }))
     }, 800)
   }
+
+  async function init() {
+    const accountName = await getAccount()
+    const { row } = await getMyRow(accountName)
+    $profile = row
+
+    await updateData()
+    shuffleThrottled()
+  }
+  async function updateData(override = null) {
+
+    data = await getData(override)
+    //data = await getTestData(3)
+    images = data.map((d) => d.profilePicture)
+  }
+
+  onMount(async () => {
+    init()
+  })
+
+  async function saveProfile() {
+    await updateMyRow($profile.accountName, $profile)
+    await updateData($profile)
+  }
   const shuffleThrottled = throttle(shuffle, 800)
-  shuffleThrottled()
 </script>
 
 <main class="container my-2 mx-auto flex flex-col">
@@ -107,6 +132,7 @@
     on:menu-settings={() => ($openMenu = 1)}
     on:menu-data={() => ($openMenu = 2)}
   />
+
   <div
     class="relative flex flex-grow justify-center items-center mt-25 mb-5 text-gray-800"
   >
@@ -126,10 +152,10 @@
 </div>
 <Modal open={$openMenu == 1} on:close={() => ($openMenu = 0)} title="Optionen">
   <div class="flex flex-col space-y-8">
-    <span><CheckBox bind:checked={$onlyNames} label="Nur Namen" /></span>
+    <span><CheckBox bind:checked={$settings.onlyNames} label="Nur Namen" /></span>
     <span
       ><CheckBox
-        bind:checked={$randomCardBacks}
+        bind:checked={$settings.randomCardBacks}
         label="Zufällige Kartenrücken"
       /></span
     >
@@ -137,46 +163,65 @@
       ><Range
         min={3}
         max={50}
-        bind:value={$numOfPairs}
-        label={`${$numOfPairs} Kartenpaare`}
+        bind:value={$settings.numOfPairs}
+        label={`${$settings.numOfPairs} Kartenpaare`}
       /></span
     >
   </div></Modal
 >
-
 <Modal
   open={$openMenu == 2}
-  on:close={() => ($openMenu = 0)}
+  on:close={() => (($openMenu = 0), saveProfile())}
   title="Meine Daten"
 >
   <div class="flex flex-col space-y-6">
-    <span><CheckBox bind:checked={$personOptIn} label="Mitmachen" /></span>
-    {#if $personOptIn}
+    <span
+      ><CheckBox bind:checked={$profile.optIn} label="Mitmachen" />
+      <div class="mt-1 text-xs">
+        Ohne deinen Opt-in tauchst du im Spiel nicht auf.
+      </div></span
+    >
+
+    {#if $profile.optIn}
       <span transition:slide class="space-y-6">
         <div class="self-center flex justify-around w-full" transition:scale>
           <Card
             card={{
               type: 'image',
               flipped: true,
-              value: $personPictureUrl,
+              value: $profile.profilePicture,
             }}
           />
           <Card
             card={{
               type: 'text',
               flipped: true,
-              value: 'Hans Musterperson',
+              value: $profile.name,
             }}
           />
         </div>
         <div>
-          <Input label={'Bild URL'} bind:value={$personPictureUrl} />
+          <Input
+            label={'Bild URL (default: Website)'}
+            bind:value={$profile.profilePicture}
+          />
         </div>
         <div>
-          <Input label={'Hobbies'} textarea bind:value={$personHobbies} />
+          <Input label={'Name'} bind:value={$profile.name} />
+        </div>
+        <div>
+          <Input
+            label={'Hobbies, Regien, Lieblingsessen, etc.'}
+            textarea
+            bind:value={$profile.hobbies}
+          />
         </div>
       </span>
     {/if}
+    <button
+      class="btn bg-cool-gray-700 hover:bg-cool-gray-500"
+      on:click={signOut}>Ausloggen</button
+    >
   </div></Modal
 >
 <Modal
