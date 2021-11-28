@@ -134,7 +134,16 @@
   }
 
   onMount(async () => {
-    init()
+    let signedIn = false
+    setInterval(async () => {
+      if (!signedIn) {
+        //alert('Please sign in to continue')
+        if (await getAccount()) {
+          signedIn = true
+          await init()
+        }
+      }
+    }, 1000)
   })
 
   async function saveProfile() {
@@ -156,6 +165,7 @@
   <div
     class="relative flex flex-grow justify-center items-center mt-25 mb-5 text-gray-800"
   >
+    <!--button class="btn" on:click={init}>Start</button-->
     <div class="relative max-w-xl h-full p-5 flex flex-wrap justify-between">
       {#each cards as card, i (i)}
         <span class="" transition:shuffling={{}}>

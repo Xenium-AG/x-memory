@@ -5,6 +5,10 @@ const msalConfig = {
     redirectUri: import.meta.env.DEV
       ? 'http://localhost:3000/x-memory/'
       : 'https://xenium-ag.github.io/x-memory/',
+
+    postLogoutRedirectUri: import.meta.env.DEV
+      ? 'http://localhost:3000/x-memory/'
+      : 'https://xenium-ag.github.io/x-memory/',
   },
   cache: {
     cacheLocation: 'sessionStorage',
@@ -13,7 +17,7 @@ const msalConfig = {
 }
 
 const loginRequest = {
-  scopes: ['openid', 'profile','User.Read'],
+  scopes: ['openid', 'profile', 'User.Read', 'Files.ReadWrite.All'],
 }
 
 const tokenRequest = {
