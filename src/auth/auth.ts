@@ -2,17 +2,19 @@ import { PublicClientApplication } from '@azure/msal-browser'
 import { msalConfig, loginRequest, tokenRequest } from './config/authConfig'
 import { graphConfig } from './config/graphConfig'
 const myMSALObj = new PublicClientApplication(msalConfig)
-async function signIn() {
+export async function signIn() {
   const loginResponse = await myMSALObj.loginPopup(loginRequest)
+
   console.log('id_token acquired at: ' + new Date().toString())
   myMSALObj.setActiveAccount(myMSALObj.getAllAccounts()[0])
-  console.log(loginResponse)
-  console.log(myMSALObj)
   return loginResponse
 }
 
 export async function signOut() {
   return myMSALObj.logoutPopup()
+}
+export function isSignedIn() {
+  return !!myMSALObj.getActiveAccount()
 }
 
 async function callMSGraph(method, headers, endpoint, body, accessToken) {
@@ -33,9 +35,9 @@ async function callMSGraph(method, headers, endpoint, body, accessToken) {
 
 async function getTokenPopup(request) {
   try {
-    return myMSALObj.acquireTokenSilent(request)
+    return await myMSALObj.acquireTokenSilent(request)
   } catch (error) {
-    console.log(error)
+    console.error(error)
     return myMSALObj.acquireTokenPopup(request)
   }
 }

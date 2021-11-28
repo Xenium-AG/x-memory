@@ -6,30 +6,26 @@
   import { getData, getTestData } from './logic/data'
   import { shuffling } from './logic/animations'
   import { throttle } from './logic/utils'
-  import {
-    openMenu,
-    settings,
-    profile,
-    Profile,
-  } from './stores/store'
+  import { openMenu, settings, profile } from './stores/store'
   import CheckBox from './components/CheckBox.svelte'
   import Range from './components/Range.svelte'
   import Input from './components/Input.svelte'
   import { scale, slide } from 'svelte/transition'
   import { CARD_STATUS } from './logic/constants'
 
-  import { getAccount, signOut } from './auth/auth'
+  import { getAccount, signOut, signIn, isSignedIn } from './auth/auth'
 
   import { onMount } from 'svelte'
-  import { getTableRows, getMyRow, updateMyRow } from './logic/excel'
+  import { getMyRow, updateMyRow } from './logic/excel'
+
   let pairs = []
   let cards = []
   let correctCards = 0
   let pickedCards = []
-
   let data = []
-
   let images = []
+  let turns = 0
+  let previouslyRevealedCardIds = new Set()
 
   function flipCard(card, index) {
     const unreveal = () => {
@@ -49,6 +45,7 @@
 
       if (pickedCards.length === 2) {
         const isCorrectPair = checkCards(pickedCards, pairs)
+        turns++
         if (isCorrectPair) {
           pickedCards.forEach((card) => {
             card.status = CARD_STATUS.Correct
@@ -73,6 +70,7 @@
     } else if (pickedCards.length === 2) {
       unreveal()
     }
+    previouslyRevealedCardIds.add(card.id)
   }
   async function closeCards() {
     pickedCards = []
@@ -89,7 +87,9 @@
   }
 
   async function shuffle(e) {
+    turns = 0
     correctCards = 0
+    previouslyRevealedCardIds = new Set()
     await closeCards()
     cards = []
     setTimeout(() => {
@@ -109,7 +109,6 @@
     shuffleThrottled()
   }
   async function updateData(override = null) {
-
     data = await getData(override)
     //data = await getTestData(3)
     images = data.map((d) => d.profilePicture)
@@ -120,8 +119,10 @@
   })
 
   async function saveProfile() {
-    await updateMyRow($profile.accountName, $profile)
-    await updateData($profile)
+    if (isSignedIn()) {
+      await updateMyRow($profile.accountName, $profile)
+      await updateData($profile)
+    }
   }
   const shuffleThrottled = throttle(shuffle, 800)
 </script>
@@ -152,7 +153,9 @@
 </div>
 <Modal open={$openMenu == 1} on:close={() => ($openMenu = 0)} title="Optionen">
   <div class="flex flex-col space-y-8">
-    <span><CheckBox bind:checked={$settings.onlyNames} label="Nur Namen" /></span>
+    <span
+      ><CheckBox bind:checked={$settings.onlyNames} label="Nur Namen" /></span
+    >
     <span
       ><CheckBox
         bind:checked={$settings.randomCardBacks}
@@ -175,12 +178,14 @@
   title="Meine Daten"
 >
   <div class="flex flex-col space-y-6">
-    <span
-      ><CheckBox bind:checked={$profile.optIn} label="Mitmachen" />
-      <div class="mt-1 text-xs">
-        Ohne deinen Opt-in tauchst du im Spiel nicht auf.
-      </div></span
-    >
+    {#if $profile.accountName.includes('@')}
+      <span
+        ><CheckBox bind:checked={$profile.optIn} label="Mitmachen" />
+        <div class="mt-1 text-xs">
+          Ohne deinen Opt-in tauchst du im Spiel nicht auf.
+        </div></span
+      >
+    {/if}
 
     {#if $profile.optIn}
       <span transition:slide class="space-y-6">
@@ -231,7 +236,9 @@
   }}
   title="Glückwunsch!"
 >
-  <div class="text-center">Du hast alle Karten afgedeckt!</div></Modal
+  <div class="text-center">
+    Du hast alle Karten in {turns} Zügen aufgedeckt!
+  </div></Modal
 >
 
 <style windi:preflights:global windi:safelist:global>
