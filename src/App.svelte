@@ -25,51 +25,60 @@
   let data = []
   let images = []
   let turns = 0
+  let wrongPairWarning = false
   let previouslyRevealedCardIds = new Set()
+  function unreveal() {
+    setPickedCardsStatus(pickedCards, CARD_STATUS.None, true)
+    pickedCards = []
+  }
 
-  function flipCard(card, index) {
-    const unreveal = () => {
-      pickedCards.forEach((card) => {
+  function flip(card, index) {
+    card.flipped = true
+    cards[index] = card
+    pickedCards = [...pickedCards, card]
+  }
+  function setPickedCardsStatus(pickedCards, status, unflip = false) {
+    pickedCards.forEach((card) => {
+      card.status = status
+      if (unflip) {
         card.flipped = false
-        card.status = CARD_STATUS.None
-      })
-      cards = cards
-      pickedCards = []
+      }
+    })
+    cards = cards
+  }
+  function markFlippedCardsAsCorrect() {
+    setPickedCardsStatus(pickedCards, CARD_STATUS.Correct)
+    const pickedCopy = [...pickedCards]
+    pickedCards = []
+    setTimeout(() => {
+      setPickedCardsStatus(pickedCopy, CARD_STATUS.None)
+    }, 500)
+  }
+  function flipCard(card, index) {
+    if (pickedCards.length === 2) {
+      if (!card.flipped) {
+        unreveal()
+      } else {
+        unreveal()
+        return
+      }
     }
 
     if (!card.flipped) {
-      if (pickedCards.length === 2) unreveal()
-      card.flipped = true
-      cards[index] = card
-      pickedCards = [...pickedCards, card]
+      flip(card, index)
 
       if (pickedCards.length === 2) {
         const isCorrectPair = checkCards(pickedCards, pairs)
         turns++
         if (isCorrectPair) {
-          pickedCards.forEach((card) => {
-            card.status = CARD_STATUS.Correct
-          })
-          cards = cards
-          const pickedCopy = [...pickedCards]
-          pickedCards = []
-          setTimeout(() => {
-            pickedCopy.forEach((card) => {
-              card.status = CARD_STATUS.None
-            })
-            cards = cards
-            correctCards += 2
-          }, 500)
+          markFlippedCardsAsCorrect()
+          correctCards += 2
         } else {
-          pickedCards.forEach((card) => {
-            card.status = CARD_STATUS.Incorrect
-          })
-          cards = cards
+          setPickedCardsStatus(pickedCards, CARD_STATUS.Incorrect)
         }
       }
-    } else if (pickedCards.length === 2) {
-      unreveal()
     }
+
     previouslyRevealedCardIds.add(card.id)
   }
   async function closeCards() {
@@ -238,6 +247,20 @@
 >
   <div class="text-center">
     Du hast alle Karten in {turns} Zügen aufgedeckt!
+  </div></Modal
+>
+
+<Modal
+  open={$openMenu == 0 && wrongPairWarning}
+  on:close={() => {
+    ;wrongPairWarning=false
+  }}
+  title="Richtig, aber..."
+>
+  <div class="text-center">
+    Die Karten passen, aber ein anderes Pärchen ist gemeint, sonst ist die Runde nicht mehr lösbar.
+    <br /> <br />
+    Der Zug wurde nicht gezählt 🙈
   </div></Modal
 >
 
