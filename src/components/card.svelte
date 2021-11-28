@@ -9,10 +9,9 @@
     COLORS.map(({ name, color }) => [
       name,
       `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" stroke="%23${color.replace(
-        "#",
-        "",
-      )}" stroke-width="22" viewBox="0 0 100 100"%3E%3Cg transform="rotate(45)"%3E%3Cpath d="M0 0h150M0 30h150M0 60h150M0 -30h150M0 -60h150"/%3E%3C/g%3E%3C/svg%3E`
-      
+        '#',
+        '',
+      )}" stroke-width="22" viewBox="0 0 100 100"%3E%3Cg transform="rotate(45)"%3E%3Cpath d="M0 0h150M0 30h150M0 60h150M0 -30h150M0 -60h150"/%3E%3C/g%3E%3C/svg%3E`,
     ]),
   )
 
@@ -89,7 +88,7 @@
     @apply shadow-md scale-110 translate-y-1 !rotate-0;
   }
   .card-front {
-    @apply hyphens-auto text-center absolute transition inset-0 shadow-md rounded-sm overflow-hidden bg-white flex justify-center items-center bg-cover border-solid border-5 border-white;
+    @apply hyphens-auto text-center absolute transition inset-0 shadow-md rounded-sm overflow-hidden bg-white flex justify-center items-center bg-cover border-solid border-5 border-white bg-center;
   }
   .incorrect {
     @apply border-red-400;

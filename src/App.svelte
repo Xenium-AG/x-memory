@@ -18,7 +18,7 @@
   import { onMount } from 'svelte'
   import { getMyRow, updateMyRow } from './logic/excel'
 
-  let pairs = []
+  let legalPairs = []
   let cards = []
   let correctCards = 0
   let pickedCards = []
@@ -68,13 +68,23 @@
       flip(card, index)
 
       if (pickedCards.length === 2) {
-        const isCorrectPair = checkCards(pickedCards, pairs)
-        turns++
-        if (isCorrectPair) {
-          markFlippedCardsAsCorrect()
-          correctCards += 2
+        const { isCorrect, isSolvable } = checkCards(
+          data,
+          cards,
+          pickedCards,
+          legalPairs,
+        )
+        if (isCorrect && !isSolvable) {
+          wrongPairWarning = true
+          setPickedCardsStatus(pickedCards, CARD_STATUS.Correct)
         } else {
-          setPickedCardsStatus(pickedCards, CARD_STATUS.Incorrect)
+          turns++
+          if (isCorrect && isSolvable) {
+            markFlippedCardsAsCorrect()
+            correctCards += 2
+          } else {
+            setPickedCardsStatus(pickedCards, CARD_STATUS.Incorrect)
+          }
         }
       }
     }
@@ -102,7 +112,7 @@
     await closeCards()
     cards = []
     setTimeout(() => {
-      ;({ pairs, cards } = createCardDeck(data, $settings.numOfPairs, {
+      ;({ legalPairs, cards } = createCardDeck(data, $settings.numOfPairs, {
         isCardBackRandom: $settings.randomCardBacks,
         onlyNames: $settings.onlyNames,
       }))
@@ -243,7 +253,7 @@
   on:close={() => {
     ;(correctCards = 0), shuffleThrottled()
   }}
-  title="Glückwunsch!"
+  title="🌈 Glückwunsch! 🌈"
 >
   <div class="text-center">
     Du hast alle Karten in {turns} Zügen aufgedeckt!
@@ -253,12 +263,13 @@
 <Modal
   open={$openMenu == 0 && wrongPairWarning}
   on:close={() => {
-    ;wrongPairWarning=false
+    wrongPairWarning = false
   }}
   title="Richtig, aber..."
 >
   <div class="text-center">
-    Die Karten passen, aber ein anderes Pärchen ist gemeint, sonst ist die Runde nicht mehr lösbar.
+    Die Karten passen, aber ein anderes Pärchen ist gemeint, sonst ist die Runde
+    nicht mehr lösbar.
     <br /> <br />
     Der Zug wurde nicht gezählt 🙈
   </div></Modal

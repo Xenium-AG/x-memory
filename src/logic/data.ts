@@ -12,21 +12,24 @@ function getRandomCity() {
   return randomArrayItem(cities)
 }
 export function getTestData(length) {
-  return Array.from({ length }, (_, i) => ({
-    id: i,
-    value: i,
-    flipped: false,
-    profilePicture: `http://placekitten.com/${100 + 3 * i}/${100 + 3 * i}`,
-    name: getRandomName(),
-    characteristics: [
-      { type: 'hobby', value: 'backen' },
-      { type: 'hobby', value: 'singen' },
+  return Array.from({ length }, (_, i) => {
+    const name = getRandomName()
+    const profilePicture = `http://placekitten.com/${100 + 3 * i}/${
+      100 + 3 * i
+    }`
+    const characteristics = [{ type: 'name', value: name }].concat([
       { type: 'location', value: getRandomCity() },
-    ],
-  })).map((d) => ({
-    ...d,
-    characteristics: [...d.characteristics, { type: 'name', value: d.name }],
-  }))
+    ])
+    const values = characteristics.map((c) => c.value).concat([profilePicture])
+    return {
+      id: i,
+      accountName: name,
+      profilePicture,
+      name: name,
+      characteristics,
+      values,
+    }
+  })
 }
 
 export async function getData(override = null) {
@@ -42,16 +45,23 @@ export async function getData(override = null) {
     }
   }
 
-  return rows.map((row, i) => ({
-    id: i,
-    accountName: row.accountName,
-    profilePicture: row.profilePicture,
-    name: row.name,
-    characteristics: [{ type: 'name', value: row.name }].concat(
+  return rows.map((row, i) => {
+    const characteristics = [{ type: 'name', value: row.name }].concat(
       row.hobbies
         .split(/[\,\.;]/g)
         .filter((h) => h.trim().length > 0)
         .map((h) => ({ type: 'hobby', value: h })),
-    ),
-  }))
+    )
+    const values = characteristics
+      .map((c) => c.value)
+      .concat([row.profilePicture])
+    return {
+      id: i,
+      accountName: row.accountName,
+      profilePicture: row.profilePicture,
+      name: row.name,
+      characteristics,
+      values,
+    }
+  })
 }

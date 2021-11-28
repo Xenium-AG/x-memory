@@ -38,3 +38,24 @@ export function throttle(callback, limit) {
 export function split(str: string) {
   return str.split(',').map((s) => s.trim())
 }
+
+export function combinations(array, depth) {
+  let result = []
+  if (depth > array.length || depth < 1) {
+    return []
+  }
+  if (depth === array.length) {
+    return [array]
+  }
+  if (depth === 1) {
+    return array.map((el) => [el])
+  }
+  for (let i = 0; i < array.length - depth + 1; i++) {
+    let head = array.slice(i, i + 1)
+    let tail = combinations(array.slice(i + 1), depth - 1)
+    for (let j = 0; j < tail.length; j++) {
+      result.push(head.concat(tail[j]))
+    }
+  }
+  return result
+}
