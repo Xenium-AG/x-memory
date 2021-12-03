@@ -254,7 +254,11 @@
     {/if}
     <button
       class="btn bg-cool-gray-700 hover:bg-cool-gray-500"
-      on:click={signOut}>Ausloggen</button
+      on:click={() => {
+        if (confirm('Möchtest du dich wirklich ausloggen?')) {
+          signOut()
+        }
+      }}>Abmelden</button
     >
   </div></Modal
 >

@@ -13,7 +13,7 @@
 
 <label for={eltId} class="relative">
   <span class="text-sm">{label}</span>
-  <input id={eltId} type="range" {min} {max} bind:value class="range mt-8" />
+  <input id={eltId} type="range" {min} {max} bind:value class="range my-10" />
 </label>
 
 <style>

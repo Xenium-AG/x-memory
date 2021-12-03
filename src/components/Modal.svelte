@@ -14,15 +14,22 @@
 {#if open}
   <div
     class="fixed z-20 inset-0 bg-light-300/15 backdrop-filter backdrop-blur-sm backdrop-grayscale"
-    transition:fade={{duration:50}}
+    transition:fade={{ duration: 50 }}
     on:click={close}
   />
   <div
-    class="absolute self-center mt-20 w-xs bg-dark-200 z-21 rounded-xl shadow px-5 pt-3 pb-8 text-light-900"
-    transition:scale={{duration:150}}
+    class="absolute self-center mt-20 w-xs bg-dark-200 z-21 rounded-xl shadow px-5 pt-3 pb-5 text-light-900"
+    transition:scale={{ duration: 150 }}
   >
     <h1 class="mt-0 mb-10 pt-1 text-center font-thin text-xl">{title}</h1>
     <slot />
+
+    <button
+      class="btn w-full mt-5"
+      on:click={close}
+    >
+      OK
+    </button>
   </div>
 {/if}
 
