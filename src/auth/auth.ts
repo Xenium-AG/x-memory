@@ -70,23 +70,24 @@ export async function getAccount() {
   return myMSALObj.getActiveAccount().username
 }
 let sessionId = ''
-export async function createSession() {
-  const { id } = await callMSGraph(
-    'POST',
-    {
-      persistChanges: true,
-    },
-    graphConfig.graphExcelEndpoint + `/createSession`,
-    {},
-    await getToken(tokenRequest),
-  )
+export async function useSession() {
+  if (!sessionId) {
+    const { id } = await callMSGraph(
+      'POST',
+      {
+        persistChanges: true,
+      },
+      graphConfig.graphExcelEndpoint + `/createSession`,
+      {},
+      await getToken(tokenRequest),
+    )
 
-  sessionId = id
+    sessionId = id
+    keepAlive()
+  }
 }
 export async function queryExcel(method, query, body = {}) {
-  if (!sessionId) {
-    await createSession()
-  }
+  await useSession()
   return callMSGraph(
     method,
     { 'workbook-session-id': sessionId },
@@ -94,4 +95,11 @@ export async function queryExcel(method, query, body = {}) {
     body,
     await getToken(tokenRequest),
   )
+}
+
+export async function keepAlive() {
+  //keep session alive
+  setInterval(async () => {
+    queryExcel('GET', `worksheets`)
+  }, 1000 * 60 * 2)
 }
