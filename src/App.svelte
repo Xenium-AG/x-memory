@@ -76,7 +76,9 @@
           legalPairs,
         )
         if (isCorrect && !isSolvable) {
-          wrongPairWarning = true
+          setTimeout(() => {
+            wrongPairWarning = true
+          }, 500)
           setPickedCardsStatus(pickedCards, CARD_STATUS.Correct)
         } else {
           turns++
@@ -141,6 +143,9 @@
         if (await getAccount()) {
           await init()
           signedIn = true
+          if (!$profile.optIn) {
+            $openMenu = 2
+          }
         }
       }
     }, 1000)
@@ -150,6 +155,7 @@
     if (isSignedIn()) {
       await updateMyRow($profile.accountName, $profile)
       await updateData($profile)
+      await init()
     }
   }
   const shuffleThrottled = throttle(shuffle, 800)
