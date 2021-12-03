@@ -3,7 +3,7 @@ import { writable } from 'svelte/store'
 export const openMenu = writable(0)
 
 const defaultSettings = {
-  numOfPairs: 5,
+  numOfPairs: 12,
   onlyNames: false,
   randomCardBacks: false,
 }
