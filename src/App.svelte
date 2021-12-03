@@ -10,14 +10,13 @@
   import CheckBox from './components/CheckBox.svelte'
   import Range from './components/Range.svelte'
   import Input from './components/Input.svelte'
-  import { scale, slide } from 'svelte/transition'
+  import { fly, scale, slide } from 'svelte/transition'
   import { CARD_STATUS } from './logic/constants'
-
   import { getAccount, signOut, signIn, isSignedIn } from './auth/auth'
-
   import { onMount } from 'svelte'
   import { getMyRow, updateMyRow } from './logic/excel'
   import Loader from './components/Loader.svelte'
+
   let signedIn = false
   let legalPairs = []
   let cards = []
@@ -28,6 +27,14 @@
   let turns = 0
   let wrongPairWarning = false
   let previouslyRevealedCardIds = new Set()
+  let badMemory = 0
+  let incorrectPicks = 0
+  let rememberingQuota = '100'
+
+  $: rememberingQuota = (
+    100 -
+    (100 * badMemory) / Math.max(1, incorrectPicks)
+  ).toFixed(0)
   function unreveal() {
     setPickedCardsStatus(pickedCards, CARD_STATUS.None, true)
     pickedCards = []
@@ -87,6 +94,10 @@
             correctCards += 2
           } else {
             setPickedCardsStatus(pickedCards, CARD_STATUS.Incorrect)
+            incorrectPicks += 1
+            if (previouslyRevealedCardIds.has(card.id)) {
+              badMemory++
+            }
           }
         }
       }
@@ -111,6 +122,8 @@
   async function shuffle(e) {
     turns = 0
     correctCards = 0
+    incorrectPicks = 0
+    badMemory = 0
     previouslyRevealedCardIds = new Set()
     await closeCards()
     cards = []
@@ -277,6 +290,22 @@
 >
   <div class="text-center">
     Du hast alle Karten in {turns} Zügen aufgedeckt!
+    <div class="my-8">
+      Erinnerungsquote: <div
+        class="text-5xl mt-2 align-top justify-center flex"
+      >
+        {#each String(rememberingQuota).split('') as num, i}
+          <span
+            class="inline-block"
+            in:fly={{ y: -10, duration: 500, delay: 200 + i * 100 }}
+          >
+            {num}
+          </span>
+        {/each}
+
+        <span class="text-xl pt-0.2 pl-0.3">%</span>
+      </div>
+    </div>
   </div></Modal
 >
 
