@@ -1,6 +1,5 @@
 import { combinations, randomArrayItem, shuffle } from './utils'
 import { CARD_BACK_COLORS } from './constants'
-import { validate_each_argument } from 'svelte/internal'
 
 export function createCardDeck(data, cardCount, options) {
   const nameProbability = 0.1

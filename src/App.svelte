@@ -17,7 +17,8 @@
 
   import { onMount } from 'svelte'
   import { getMyRow, updateMyRow } from './logic/excel'
-
+  import Loader from './components/Loader.svelte'
+  let signedIn = false
   let legalPairs = []
   let cards = []
   let correctCards = 0
@@ -134,13 +135,12 @@
   }
 
   onMount(async () => {
-    let signedIn = false
     setInterval(async () => {
       if (!signedIn) {
         //alert('Please sign in to continue')
         if (await getAccount()) {
-          signedIn = true
           await init()
+          signedIn = true
         }
       }
     }, 1000)
@@ -284,6 +284,7 @@
     Der Zug wurde nicht gezählt 🙈
   </div></Modal
 >
+<Loader open={!signedIn} />
 
 <style windi:preflights:global windi:safelist:global>
   :root {
