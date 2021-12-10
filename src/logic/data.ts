@@ -1,4 +1,4 @@
-import type { Profile } from 'src/stores/store'
+import { getFileLink } from '../auth/auth'
 import { getTableRows } from './excel'
 import { randomArrayItem, split } from './utils'
 const cities = split('Berlin,München,Hamburg')
@@ -33,7 +33,7 @@ export function getTestData(length) {
 }
 
 export async function getData(override = null) {
-  const rows = (await getTableRows()).filter((row) => row.optIn)
+  let rows = (await getTableRows()).filter((row) => row.optIn)
 
   if (override) {
     const index = rows.findIndex(
@@ -44,6 +44,20 @@ export async function getData(override = null) {
       rows[index] = override
     }
   }
+
+  const result = ((1+2))
+
+
+  //rewrite onedrive image urls to have current token, otherwise they wont load
+  rows = await Promise.all(
+    rows.map(async (row) => {
+      if (row.profilePicture.includes('graph.microsoft.com')) {
+        return { ...row, profilePicture: await getFileLink(row.profilePicture) }
+      } else {
+        return row
+      }
+    }),
+  )
 
   return rows.map((row, i) => {
     const characteristics = [{ type: 'name', value: row.name }].concat(

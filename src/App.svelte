@@ -5,7 +5,7 @@
   import { checkCards, createCardDeck } from './logic/cardDeck'
   import { getData, getTestData } from './logic/data'
   import { shuffling } from './logic/animations'
-  import { throttle } from './logic/utils'
+  import { debounce, throttle } from './logic/utils'
   import { openMenu, settings, profile } from './stores/store'
   import CheckBox from './components/CheckBox.svelte'
   import Range from './components/Range.svelte'
@@ -18,6 +18,7 @@
   import Loader from './components/Loader.svelte'
 
   let signedIn = false
+  let initialized = false
   let legalPairs = []
   let cards = []
   let correctCards = 0
@@ -139,7 +140,6 @@
     const accountName = await getAccount()
     const { row } = await getMyRow(accountName)
     $profile = row
-
     await updateData()
     shuffleThrottled()
   }
@@ -154,8 +154,9 @@
       if (!signedIn) {
         //alert('Please sign in to continue')
         if (await getAccount()) {
-          await init()
           signedIn = true
+          await init()
+          initialized=true
           if (!$profile.optIn) {
             $openMenu = 2
           }
@@ -171,7 +172,7 @@
       await init()
     }
   }
-  const shuffleThrottled = throttle(shuffle, 800)
+  const shuffleThrottled = throttle(shuffle, 500)
 </script>
 
 <main class="container my-2 mx-auto flex flex-col">
@@ -323,7 +324,7 @@
     Der Zug wurde nicht gezählt 🙈
   </div></Modal
 >
-<Loader open={!signedIn} />
+<Loader open={!initialized} />
 
 <style windi:preflights:global windi:safelist:global>
   :root {

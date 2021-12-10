@@ -97,6 +97,10 @@ export async function queryExcel(method, query, body = {}) {
   )
 }
 
+export async function getFileLink(graphUrl) {
+  return (await callMSGraph('GET', {}, graphUrl, {}, await getToken(tokenRequest)))["@microsoft.graph.downloadUrl"]
+}
+
 export async function keepAlive() {
   //keep session alive
   setInterval(async () => {
