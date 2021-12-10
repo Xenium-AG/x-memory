@@ -82,6 +82,7 @@
           cards,
           pickedCards,
           legalPairs,
+          $settings.emojiMode,
         )
         if (isCorrect && !isSolvable) {
           setTimeout(() => {
@@ -130,6 +131,8 @@
     cards = []
     setTimeout(() => {
       ;({ legalPairs, cards } = createCardDeck(data, $settings.numOfPairs, {
+        emojiMode: $settings.emojiMode,
+        emojis: $settings.emojis,
         isCardBackRandom: $settings.randomCardBacks,
         onlyNames: $settings.onlyNames,
       }))
@@ -156,7 +159,7 @@
         if (await getAccount()) {
           signedIn = true
           await init()
-          initialized=true
+          initialized = true
           if (!$profile.optIn) {
             $openMenu = 2
           }
@@ -211,6 +214,26 @@
         label="Zufällige Kartenrücken"
       /></span
     >
+    <span
+      ><CheckBox
+        bind:checked={$settings.emojiMode}
+        label="Emoji Modus🍀"
+      /></span
+    >
+    {#if $settings.emojiMode}
+      <span class="flex flex-col children:w-full"
+        ><Input label={'Emojis'} textarea bind:value={$settings.emojis} />
+        <button class="btn bg-light-50 mt-5 h-8 py-0"
+          on:click={() =>
+            ($settings.emojis =
+              '🐵🐶🐺🐱🦁🐯🦒🦊🦝🐮🐷🐗🐭🐹🐰🐻🐨🐼🐸🦓🐴🦄🐔🐲🐒🦍🦧🐅🐆🐎🦌🦏🦛🐂🐃🐄🐖🐏🐑🐐🐪🐫🦙🦘🦥🦨🦡🐘🐁🐀🦔🐇🐿🦎🐊🐢🐍🐉🦕🦖🦦🦈🐬🐳🐋🐟🐠🐡🦐🦑🐙🦞🦀🐚🦆🐓🦃🦅🕊🦢🦜🦩🦚🦉🐦🐧🐥🐣🦇🦋🐌🐛🦟🦗🐜🐝🐞🦂')}
+        >
+          <span class="text-red-500">Reset</span>
+        </button>
+      </span>
+      
+    {/if}
+
     <span
       ><Range
         min={3}

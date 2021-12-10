@@ -65,6 +65,7 @@
             class="card-front text-light-blue-800"
             class:incorrect={card.status === CARD_STATUS.Incorrect}
             class:correct={card.status === CARD_STATUS.Correct}
+            class:emoji={card.type === 'emoji'}
             transition:flip|local
           >
             {card.value}
@@ -95,5 +96,8 @@
   }
   .correct {
     @apply border-green-400;
+  }
+  .emoji {
+    font-size: 60px;
   }
 </style>

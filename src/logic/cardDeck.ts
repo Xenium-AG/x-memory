@@ -1,9 +1,28 @@
 import { combinations, randomArrayItem, shuffle } from './utils'
 import { CARD_BACK_COLORS } from './constants'
 
-export function createCardDeck(data, cardCount, options) {
+function createEmojiPairs(options) {
+  return shuffle([...(options.emojis || '🐵')]).map((d) => {
+    const left = {
+      isLeft: true,
+      type: 'emoji',
+      origin: d,
+      value: d,
+    }
+    const right = {
+      isLeft: false,
+      type: 'emoji',
+      origin: d,
+      value: d,
+    }
+
+    return { left, right }
+  })
+}
+
+function createTeamPairs(data, options) {
   const nameProbability = 0.1
-  let pairs = data.map((d) => {
+  return data.map((d) => {
     const left = {
       isLeft: true,
       type: 'text',
@@ -49,6 +68,15 @@ export function createCardDeck(data, cardCount, options) {
 
     return { left, right }
   })
+}
+
+export function createCardDeck(data, cardCount, options) {
+  let pairs
+  if (options.emojiMode) {
+    pairs = createEmojiPairs(options)
+  } else {
+    pairs = createTeamPairs(data, options)
+  }
 
   const cards = shuffle(
     shuffle(pairs.slice(0, cardCount))
@@ -70,10 +98,17 @@ export function createCardDeck(data, cardCount, options) {
   )
 
   const legalPairs = []
-  for (let i = 0; i < cards.length - 1; i++) {
-    for (let j = i + 1; j < cards.length; j++) {
-      if (hasMatch(data, [cards[i], cards[j]])) {
-        legalPairs.push([cards[i].id, cards[j].id])
+
+  if (options.emojiMode) {
+    for (let i = 0; i < cards.length; i += 2) {
+      legalPairs.push([i, i + 1])
+    }
+  } else {
+    for (let i = 0; i < cards.length - 1; i++) {
+      for (let j = i + 1; j < cards.length; j++) {
+        if (hasMatch(data, [cards[i], cards[j]])) {
+          legalPairs.push([cards[i].id, cards[j].id])
+        }
       }
     }
   }
@@ -98,34 +133,41 @@ function hasMatch(data, pair) {
   })
 }
 
-export function checkCards(data, cards, pickedCards, legalPairs) {
-  const match = hasMatch(data, pickedCards)
-
-  const closedCardIds = cards
-    .filter((card) => !card.flipped)
-    .map((card) => card.id)
-
-  if (closedCardIds.length === 0) {
-    return { isCorrect: !!match, isSolvable: true }
-  }
-  //easter egg
-  if (pickedCards.every((p) => p.value.match(/(ruppert|jores)\.jpg$/))) {
-    return { isCorrect: true, isSolvable: false }
-  }
-
-  const pairs = legalPairs.filter(([first, second]) => {
-    return closedCardIds.includes(first) && closedCardIds.includes(second)
-  })
-
-  const allCombinations: any[] = combinations(pairs, closedCardIds.length / 2)
-  //all combinations of pairs
-
-  const isSolvable = allCombinations.some((combination) => {
-    if (closedCardIds.length === new Set(combination.flat()).size) {
-      return true
+export function checkCards(data, cards, pickedCards, legalPairs, isEmojiMode) {
+  if (isEmojiMode) {
+    return {
+      isCorrect: new Set(pickedCards.map((p) => p.value)).size === 1,
+      isSolvable: true,
     }
-    return false
-  })
+  } else {
+    const match = hasMatch(data, pickedCards)
 
-  return { isCorrect: !!match, isSolvable }
+    const closedCardIds = cards
+      .filter((card) => !card.flipped)
+      .map((card) => card.id)
+
+    if (closedCardIds.length === 0) {
+      return { isCorrect: !!match, isSolvable: true }
+    }
+    //easter egg
+    if (pickedCards.every((p) => p.value.match(/(ruppert|jores)\.jpg$/))) {
+      return { isCorrect: true, isSolvable: false }
+    }
+
+    const pairs = legalPairs.filter(([first, second]) => {
+      return closedCardIds.includes(first) && closedCardIds.includes(second)
+    })
+
+    const allCombinations: any[] = combinations(pairs, closedCardIds.length / 2)
+    //all combinations of pairs
+
+    const isSolvable = allCombinations.some((combination) => {
+      if (closedCardIds.length === new Set(combination.flat()).size) {
+        return true
+      }
+      return false
+    })
+
+    return { isCorrect: !!match, isSolvable }
+  }
 }
