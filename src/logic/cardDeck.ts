@@ -79,7 +79,7 @@ export function createCardDeck(data, cardCount, options) {
   }
 
   const cards = shuffle(
-    shuffle(pairs.slice(0, cardCount))
+    shuffle(pairs).slice(0, cardCount)
       .map(({ left, right }, i) => {
         return [left, right].map(({ isLeft, type, value }, j) => ({
           id: i * 2 + j,
